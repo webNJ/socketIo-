@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		*{margin:0;padding: 0}
+		.hiden{
+			display: none;
+		}
+		.show{
+			display: block;
+
+		}
+	</style>
+	<script src="socket.io/socket.io.js"></script>
+</head>
+<body>
+	<div id="loge">
+		<input type="text" placeholder="Please enter your username               
+"><button>send</button>
+	</div>
+	<div id="chart" class="hiden">
+		<div id="textaire"></div>
+		<input type="text"><br>
+		<input type="color"><br>
+		<button>send</button>
+	</div>
+	
+<script>
+	var loge=document.getElementById('loge');
+	var logename=loge.getElementsByTagName('input')[0];
+	var login=loge.getElementsByTagName('button')[0];
+	var chart=document.getElementById('chart');
+	var text=chart.getElementsByTagName('input')[0];
+	var color=chart.getElementsByTagName('input')[1];
+	var send=chart.getElementsByTagName('button')[0];
+	var textaire=document.getElementById('textaire');
+	var io=io.connect('http://192.168.199.193:8000');
+	io.on('connect',function(){
+		login.onclick=function(){
+			if(logename.value != ''){
+				io.emit('loginserver',logename.value)
+			}
+		}
+		io.on('dontlogin',function(){
+			alert('用户名重复，请重新输入')
+			
+		})
+		io.on('loginclient',function(msg){
+			loge.className='hiden';
+			chart.className='show'
+			io.emit('loginok',msg)
+		})
+		io.on('welcome',function(msg){
+			var head=document.createElement('h5');
+			head.innerHTML=msg;
+			textaire.appendChild(head)
+		})
+		send.onclick=function(){
+			if(text.value!=''){
+				var col=color.value;
+				io.emit('chat',`<b style="color:${col};font-size: 18px;">${logename.value}</b>：${text.value}`)
+				text.value='';
+			}
+			
+		}
+		io.on('chatclient',function(msg){
+			var heig=textaire.clientHeight;
+			if(heig>=300){
+				io.emit('remove')
+				console.log(2)
+			}
+			var op=document.createElement('p');
+			op.innerHTML=msg
+			textaire.appendChild(op);
+			
+
+			
+		})
+		io.on('clear',function(){
+			
+			textaire.innerHTML='';
+			textaire.style.height=0+'px'
+		})
+	})
+</script>
+</body>
+</html>
